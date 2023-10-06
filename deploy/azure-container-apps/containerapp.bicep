@@ -261,7 +261,7 @@ resource job 'Microsoft.App/jobs@2023-05-01' = {
           }
           command: [
             'mage'
-            'servicebus:jobs'
+            'servicebus:receiveall'
           ]
         }
       ]
