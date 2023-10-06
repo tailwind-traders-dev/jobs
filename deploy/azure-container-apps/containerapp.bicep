@@ -60,7 +60,9 @@ resource environment 'Microsoft.App/managedEnvironments@2022-06-01-preview' = {
     appLogsConfiguration: {
       destination: 'log-analytics'
       logAnalyticsConfiguration: {
+        #disable-next-line use-resource-symbol-reference
         customerId: reference(logAnalyticsWorkspace.id, '2020-03-01-preview').customerId
+        #disable-next-line use-resource-symbol-reference
         sharedKey: listKeys(logAnalyticsWorkspace.id, '2020-03-01-preview').primarySharedKey
       }
     }
