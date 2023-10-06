@@ -109,7 +109,7 @@ func (ServiceBus) SendMessageBatch() error {
 
 // Receive receives and completes a batch of 5 messages
 // from the service bus queue with a 1 second delay between
-// each message
+// each message. This will receive messages indefinitely.
 func (ServiceBus) Receive() error {
 	queueOrTopic := os.Getenv("AZURE_SERVICEBUS_QUEUE_NAME")
 	if queueOrTopic == "" {
@@ -143,6 +143,48 @@ func (ServiceBus) Receive() error {
 				return err
 			}
 			time.Sleep(1 * time.Second)
+		}
+	}
+}
+
+// ReceiveAll receives and completes all messages from the
+// Service Bus queue, in batches of 5, and exits when complete
+func (ServiceBus) ReceiveAll() error {
+	queueOrTopic := os.Getenv("AZURE_SERVICEBUS_QUEUE_NAME")
+	if queueOrTopic == "" {
+		return errors.New("AZURE_SERVICEBUS_QUEUE_NAME environment variable not found")
+	}
+
+	ctx := context.Background()
+	client, err := getServiceBusClient()
+	if err != nil {
+		return err
+	}
+	defer client.Close(ctx)
+
+	receiver, err := client.NewReceiverForQueue(queueOrTopic, nil)
+	if err != nil {
+		return err
+	}
+	defer receiver.Close(ctx)
+
+	count := 5
+	for {
+		messages, err := receiver.ReceiveMessages(ctx, count, nil)
+		if err != nil {
+			return err
+		}
+
+		if len(messages) == 0 {
+			return nil
+		}
+
+		for _, message := range messages {
+			fmt.Printf("Received message: %s\n", message.Body)
+			err = receiver.CompleteMessage(ctx, message, nil)
+			if err != nil {
+				return err
+			}
 		}
 	}
 }
@@ -226,6 +268,62 @@ func (Docker) Run(target string) error {
 		"jobs",
 		"mage",
 		target,
+	}
+	return sh.RunV(cmd1[0], cmd1[1:]...)
+}
+
+type Deploy mg.Namespace
+
+// ContainerApp deploys the Container App(s) via containerapp.bicep
+// into the provided <resource group>
+// Requires: AZURE_SERVICEBUS_CONNECTION_STRING
+func (Deploy) ContainerApp(resourceGroup string) error {
+	backgroundAppConnection := os.Getenv("AZURE_SERVICEBUS_CONNECTION_STRING")
+	if backgroundAppConnection == "" {
+		return errors.New("AZURE_SERVICEBUS_CONNECTION_STRING environment variable not found")
+	}
+	cmd1 := []string{
+		"az",
+		"deployment",
+		"group",
+		"create",
+		"--resource-group",
+		resourceGroup,
+		"--template-file",
+		"deploy/azure-container-apps/containerapp.bicep",
+		"--parameters",
+		"background_app_connection=" + backgroundAppConnection,
+	}
+	return sh.RunV(cmd1[0], cmd1[1:]...)
+}
+
+// Empty empties the <resource group> via empty.bicep
+func (Deploy) Empty(resourceGroup string) error {
+	cmd1 := []string{
+		"az",
+		"deployment",
+		"group",
+		"create",
+		"--resource-group",
+		resourceGroup,
+		"--mode",
+		"Complete",
+		"--template-file",
+		"deploy/azure-container-apps/empty.bicep",
+	}
+	return sh.RunV(cmd1[0], cmd1[1:]...)
+}
+
+// Group creates the <resource group> in <location>
+func (Deploy) Group(name, location string) error {
+	cmd1 := []string{
+		"az",
+		"group",
+		"create",
+		"--name",
+		name,
+		"--location",
+		location,
 	}
 	return sh.RunV(cmd1[0], cmd1[1:]...)
 }
