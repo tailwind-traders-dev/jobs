@@ -274,12 +274,12 @@ func (Docker) Run(target string) error {
 
 type Deploy mg.Namespace
 
-// ContainerApp deploys the Container App(s) via containerapp.bicep
+// ContainerApps deploys the Container App(s) via containerapp.bicep
 // into the provided <resource group>
 // Requires: AZURE_SERVICEBUS_CONNECTION_STRING
-func (Deploy) ContainerApp(resourceGroup string) error {
-	backgroundAppConnection := os.Getenv("AZURE_SERVICEBUS_CONNECTION_STRING")
-	if backgroundAppConnection == "" {
+func (Deploy) ContainerApps(resourceGroup string) error {
+	serviceBusConnection := os.Getenv("AZURE_SERVICEBUS_CONNECTION_STRING")
+	if serviceBusConnection == "" {
 		return errors.New("AZURE_SERVICEBUS_CONNECTION_STRING environment variable not found")
 	}
 	cmd1 := []string{
@@ -292,7 +292,7 @@ func (Deploy) ContainerApp(resourceGroup string) error {
 		"--template-file",
 		"deploy/azure-container-apps/containerapp.bicep",
 		"--parameters",
-		"background_app_connection=" + backgroundAppConnection,
+		"service_bus_connection=" + serviceBusConnection,
 	}
 	return sh.RunV(cmd1[0], cmd1[1:]...)
 }

@@ -17,7 +17,7 @@ Common use cases include:
 ```
 $ mage
 Targets:
-  deploy:containerApp            deploys the Container App(s) via containerapp.bicep into the provided <resource group> Requires: AZURE_SERVICEBUS_CONNECTION_STRING
+  deploy:containerApps           deploys the Container App(s) via containerapp.bicep into the provided <resource group> Requires: AZURE_SERVICEBUS_CONNECTION_STRING
   deploy:empty                   empties the <resource group> via empty.bicep
   deploy:group                   creates the <resource group> in <location>
   docker:build                   BuildDev builds the container image, "jobs", with --no-cache and Dockerfile which builds a static binary and multi-stage builds to utilize a distroless image
