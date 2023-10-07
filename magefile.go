@@ -170,8 +170,13 @@ func (ServiceBus) ReceiveAll() error {
 
 	count := 5
 	for {
-		messages, err := receiver.ReceiveMessages(ctx, count, nil)
+		timeout, _ := context.WithTimeout(ctx, 5*time.Second)
+		messages, err := receiver.ReceiveMessages(timeout, count, nil)
 		if err != nil {
+			if errors.Is(err, context.DeadlineExceeded) {
+				fmt.Printf("No messages in 5s, exiting\n")
+				return nil
+			}
 			return err
 		}
 
