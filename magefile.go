@@ -232,7 +232,7 @@ func getServiceBusClientDefault() (*azservicebus.Client, error) {
 
 type Docker mg.Namespace
 
-// BuildDev builds the container image, "jobs", with --no-cache
+// Build builds the container image, "jobs", with --no-cache
 // and Dockerfile which builds a static binary and
 // multi-stage builds to utilize a distroless image
 func (Docker) Build() error {
