@@ -220,8 +220,8 @@ resource job 'Microsoft.App/jobs@2023-05-01' = {
         parallelism: 1
         scale: {
           minExecutions: 0
-          maxExecutions: 100
-          pollingInterval: 30
+          maxExecutions: 5
+          pollingInterval: 60
           rules: [
             {
               name: 'azure-servicebus-queue-rule'
