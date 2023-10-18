@@ -1,7 +1,4 @@
-//go:build mage
-// +build mage
-
-package main
+package senders
 
 import (
 	"bytes"
@@ -16,31 +13,53 @@ import (
 	"net/url"
 	"os"
 	"time"
-
-	"github.com/magefile/mage/mg"
 )
 
-type Email mg.Namespace
+type AzureContainerServices struct {
+	Endpoint string
+	Key      string
+	From     string
+}
 
-// SendOne sends one test email to <to> via Azure Communications Services
-func (Email) SendOne(to string) error {
+// NewAzureContainerServicesFromEnv creates an AzureContainerServices
+// client from environment variables ACS_ENDPOINT, ACS_KEY, ACS_FROM
+func NewAzureContainerServicesFromEnv() (*AzureContainerServices, error) {
 	endpoint := os.Getenv("ACS_ENDPOINT")
 	if endpoint == "" {
-		return errors.New("ACS_ENDPOINT is not set")
+		return nil, errors.New("ACS_ENDPOINT is not set")
 	}
 	key := os.Getenv("ACS_KEY")
 	if key == "" {
-		return errors.New("ACS_KEY is not set")
+		return nil, errors.New("ACS_KEY is not set")
 	}
 	from := os.Getenv("ACS_FROM")
 	if from == "" {
-		return errors.New("ACS_FROM is not set")
+		return nil, errors.New("ACS_FROM is not set")
 	}
+	return &AzureContainerServices{
+		Endpoint: endpoint,
+		Key:      key,
+		From:     from,
+	}, nil
+}
 
+// NewAzureContainerServices creates an AzureContainerServices
+// instance with the provided endpoint, key and from email
+func NewAzureContainerServices(endpoint, key, from string) (*AzureContainerServices, error) {
+	return &AzureContainerServices{
+		Endpoint: endpoint,
+		Key:      key,
+		From:     from,
+	}, nil
+}
+
+// SendOne sends one test email to <to> via Azure Communications Services
+func (a AzureContainerServices) SendOne(to string) error {
 	// create email
 	subject := "hello"
 	body := "world"
-	b, err := newEmail(from, to, subject, body)
+
+	b, err := a.NewEmail(a.From, to, subject, body)
 	if err != nil {
 		return err
 	}
@@ -64,7 +83,7 @@ func (Email) SendOne(to string) error {
 		URIPathAndQuery + "\n"
 		Timestamp + ";" + Host + ";" + ContentHash
 	*/
-	tmp1, err := url.Parse(endpoint)
+	tmp1, err := url.Parse(a.Endpoint)
 	if err != nil {
 		return err
 	}
@@ -74,7 +93,7 @@ func (Email) SendOne(to string) error {
 	// create signature
 	// Signature=Base64(HMAC-SHA256(UTF8(StringToSign), Base64.decode(<your_access_key>)))
 	// base64 decode key
-	key1, err := base64.StdEncoding.DecodeString(key)
+	key1, err := base64.StdEncoding.DecodeString(a.Key)
 	if err != nil {
 		return err
 	}
@@ -84,7 +103,7 @@ func (Email) SendOne(to string) error {
 	authorization1 := fmt.Sprintf("HMAC-SHA256 SignedHeaders=x-ms-date;host;x-ms-content-sha256&Signature=%s", signature1)
 
 	// send request
-	url1 := endpoint + pathAndQuery
+	url1 := a.Endpoint + pathAndQuery
 	req, err := http.NewRequest(http.MethodPost, url1, bytes.NewBuffer(b))
 	if err != nil {
 		return err
@@ -113,20 +132,7 @@ func (Email) SendOne(to string) error {
 }
 
 // GetResult gets the result of <id> from Azure Communication Services
-func (Email) GetResult(operationID string) error {
-	endpoint := os.Getenv("ACS_ENDPOINT")
-	if endpoint == "" {
-		return errors.New("ACS_ENDPOINT is not set")
-	}
-	key := os.Getenv("ACS_KEY")
-	if key == "" {
-		return errors.New("ACS_KEY is not set")
-	}
-	from := os.Getenv("ACS_FROM")
-	if from == "" {
-		return errors.New("ACS_FROM is not set")
-	}
-
+func (a AzureContainerServices) GetResult(operationID string) error {
 	// see: https://learn.microsoft.com/en-us/rest/api/communication/email/get-send-result?tabs=HTTP
 	pathAndQuery := fmt.Sprintf("/emails/operations/%s?api-version=2023-03-31", operationID)
 	verb1 := http.MethodGet
@@ -146,7 +152,7 @@ func (Email) GetResult(operationID string) error {
 		URIPathAndQuery + "\n"
 		Timestamp + ";" + Host + ";" + ContentHash
 	*/
-	tmp1, err := url.Parse(endpoint)
+	tmp1, err := url.Parse(a.Endpoint)
 	if err != nil {
 		return err
 	}
@@ -156,7 +162,7 @@ func (Email) GetResult(operationID string) error {
 	// create signature
 	// Signature=Base64(HMAC-SHA256(UTF8(StringToSign), Base64.decode(<your_access_key>)))
 	// base64 decode key
-	key1, err := base64.StdEncoding.DecodeString(key)
+	key1, err := base64.StdEncoding.DecodeString(a.Key)
 	if err != nil {
 		return err
 	}
@@ -166,7 +172,7 @@ func (Email) GetResult(operationID string) error {
 	authorization1 := fmt.Sprintf("HMAC-SHA256 SignedHeaders=x-ms-date;host;x-ms-content-sha256&Signature=%s", signature1)
 
 	// send request
-	url1 := endpoint + pathAndQuery
+	url1 := a.Endpoint + pathAndQuery
 	req, err := http.NewRequest(http.MethodGet, url1, bytes.NewBuffer(b))
 	if err != nil {
 		return err
@@ -193,8 +199,8 @@ func (Email) GetResult(operationID string) error {
 	return nil
 }
 
-// newEmail builds the JSON request body for sending an email
-func newEmail(senderAddress, to, subject, body string) ([]byte, error) {
+// NewEmail builds the JSON request body for sending an email
+func (a AzureContainerServices) NewEmail(senderAddress, to, subject, body string) ([]byte, error) {
 	// see full request schema at:
 	// https://learn.microsoft.com/en-us/rest/api/communication/email/send?tabs=HTTP#send-email
 	msg1 := struct {

@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"jobs/senders"
 	"os"
 	"time"
 
@@ -29,6 +30,26 @@ func Goodbye() error {
 	now := time.Now().UTC().Format(time.RFC3339)
 	fmt.Printf("goodbye %s\n", now)
 	return nil
+}
+
+type Email mg.Namespace
+
+// SendOne sends one test email to <to> via Azure Communications Services
+func (Email) SendOne(to string) error {
+	s, err := senders.NewAzureContainerServicesFromEnv()
+	if err != nil {
+		return err
+	}
+	return s.SendOne(to)
+}
+
+// GetResult gets the result of <id> from Azure Communication Services
+func (Email) GetResult(operationID string) error {
+	s, err := senders.NewAzureContainerServicesFromEnv()
+	if err != nil {
+		return err
+	}
+	return s.GetResult(operationID)
 }
 
 type ServiceBus mg.Namespace
