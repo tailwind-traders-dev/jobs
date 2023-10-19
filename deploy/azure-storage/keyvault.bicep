@@ -10,10 +10,12 @@ resource managedIdentity 'Microsoft.ManagedIdentity/userAssignedIdentities@2018-
   location: location
 }
 
-resource keyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
+resource keyVault 'Microsoft.KeyVault/vaults@2022-07-01' = {
   name: 'keyvault${rand}'
   location: location
   properties: {
+    enableSoftDelete: false
+    enableRbacAuthorization: true
     enabledForDeployment: true
     enabledForTemplateDeployment: true
     enabledForDiskEncryption: true
@@ -26,17 +28,6 @@ resource keyVault 'Microsoft.KeyVault/vaults@2019-09-01' = {
       defaultAction: 'Allow'
       bypass: 'AzureServices'
     }
-    accessPolicies: [
-      {
-        objectId: managedIdentity.properties.principalId
-        permissions: {
-          secrets: [
-            'all'
-          ]
-        }
-        tenantId: subscription().tenantId
-      }
-    ]
   }
 }
 
