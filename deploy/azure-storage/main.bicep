@@ -83,7 +83,7 @@ module postgres 'postgres.bicep' = if (deployPostgres) {
 module postgresAdministrator 'postgres-admin.bicep' = if (deployPostgres) {
   name: 'postgres-admin'
   params: {
-    postgresName: postgres.name
+    postgresName: postgres.outputs.postgresName
     principalId: managedIdentity.properties.principalId
     principalName: managedIdentity.name
   }
