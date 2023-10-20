@@ -15,10 +15,10 @@ import (
 	"github.com/magefile/mage/mg"
 )
 
-type serviceBus mg.Namespace
+type ServiceBus mg.Namespace
 
 // Send sends a single message to the service bus queue
-func (serviceBus) Send(message string) error {
+func (ServiceBus) Send(message string) error {
 	queueOrTopic := os.Getenv("AZURE_SERVICEBUS_QUEUE_NAME")
 	if queueOrTopic == "" {
 		return errors.New("AZURE_SERVICEBUS_QUEUE_NAME environment variable not found")
@@ -51,7 +51,7 @@ func (serviceBus) Send(message string) error {
 // SendMessageBatch sends a batch of 10 messages to the
 // service bus queue with a 1 second delay between each
 // message
-func (serviceBus) SendMessageBatch() error {
+func (ServiceBus) SendMessageBatch() error {
 	queueOrTopic := os.Getenv("AZURE_SERVICEBUS_QUEUE_NAME")
 	if queueOrTopic == "" {
 		return errors.New("AZURE_SERVICEBUS_QUEUE_NAME environment variable not found")
@@ -94,7 +94,7 @@ func (serviceBus) SendMessageBatch() error {
 // Receive receives and completes a batch of 5 messages
 // from the service bus queue with a 1 second delay between
 // each message. This will receive messages indefinitely.
-func (serviceBus) Receive() error {
+func (ServiceBus) Receive() error {
 	queueOrTopic := os.Getenv("AZURE_SERVICEBUS_QUEUE_NAME")
 	if queueOrTopic == "" {
 		return errors.New("AZURE_SERVICEBUS_QUEUE_NAME environment variable not found")
@@ -133,7 +133,7 @@ func (serviceBus) Receive() error {
 
 // ReceiveAll receives and completes all messages from the
 // Service Bus queue, in batches of 5, and exits when complete
-func (serviceBus) ReceiveAll() error {
+func (ServiceBus) ReceiveAll() error {
 	queueOrTopic := os.Getenv("AZURE_SERVICEBUS_QUEUE_NAME")
 	if queueOrTopic == "" {
 		return errors.New("AZURE_SERVICEBUS_QUEUE_NAME environment variable not found")
