@@ -161,6 +161,39 @@ func (Deploy) StorageAndPostgres(resourceGroup string) error {
 	return sh.RunV(cmd1[0], cmd1[1:]...)
 }
 
+// RBAC deploys Role Based Access Control using rbac.bicep
+// with the principalID of the currently signed in user
+func (Deploy) RBAC(resourceGroup string) error {
+	cmd1 := []string{
+		"az",
+		"ad",
+		"signed-in-user",
+		"show",
+		"--query",
+		"id",
+		"--out",
+		"tsv",
+	}
+	principalID, err := sh.Output(cmd1[0], cmd1[1:]...)
+	if err != nil {
+		return err
+	}
+
+	cmd2 := []string{
+		"az",
+		"deployment",
+		"group",
+		"create",
+		"--resource-group",
+		resourceGroup,
+		"--template-file",
+		"deploy/azure-storage/rbac.bicep",
+		"--parameters",
+		"principalID=" + principalID,
+	}
+	return sh.RunV(cmd2[0], cmd2[1:]...)
+}
+
 // Empty empties the <resource group> via empty.bicep
 func (Deploy) Empty(resourceGroup string) error {
 	fmt.Printf("Emptying Resource Group (%s) in 10 seconds.\n", resourceGroup)
