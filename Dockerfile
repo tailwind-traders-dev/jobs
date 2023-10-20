@@ -26,4 +26,4 @@ RUN mage -compile mage
 
 FROM cgr.dev/chainguard/glibc-dynamic
 COPY --from=builder /app/mage /usr/bin/
-CMD ["mage", "hello"]
+CMD ["mage", "test:hello"]

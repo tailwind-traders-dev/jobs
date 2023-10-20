@@ -14,16 +14,18 @@ import (
 	"github.com/magefile/mage/sh"
 )
 
+type Test mg.Namespace
+
 // Hello is our default mage target which we also call
 // by default within our Docker container
-func Hello() error {
+func (Test) Hello() error {
 	now := time.Now().UTC().Format(time.RFC3339)
 	fmt.Printf("hello %s\n", now)
 	return nil
 }
 
 // Goodbye is an alternative mage target we can call
-func Goodbye() error {
+func (Test) Goodbye() error {
 	now := time.Now().UTC().Format(time.RFC3339)
 	fmt.Printf("goodbye %s\n", now)
 	return nil

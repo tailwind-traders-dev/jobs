@@ -22,4 +22,4 @@ COPY . .
 RUN mage
 
 # run our chosen "default" mage target, hello
-CMD ["mage", "hello"]
+CMD ["mage", "test:hello"]
