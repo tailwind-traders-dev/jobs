@@ -14,6 +14,8 @@ Common use cases include:
 - Running the resulting container image on a serverless platform (e.g. Azure Container Apps), on Kubernetes, or a VM.
 - Cloning and running mage directly, or pre-compiling a binary, to run on remote compute such as a VM.
 
+See [docs/](./docs/) for for more documentation, or run `mage` to see currently available mage targets as follows:
+
 ```
 $ mage
 Targets:
