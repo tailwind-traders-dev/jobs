@@ -100,6 +100,24 @@ func (Docker) Run(target string) error {
 
 type Deploy mg.Namespace
 
+// AKS deploys Azure Kubernetes Service via aks.bicep into
+// the provided <resource group>
+func (Deploy) AKS(resourceGroup string) error {
+	cmd1 := []string{
+		"az",
+		"deployment",
+		"group",
+		"create",
+		"--resource-group",
+		resourceGroup,
+		"--template-file",
+		"deploy/azure-kubernetes-service/aks.bicep",
+		//"--parameters",
+		//"location=" + location,
+	}
+	return sh.RunV(cmd1[0], cmd1[1:]...)
+}
+
 // ContainerApps deploys the Container App(s) via containerapp.bicep
 // into the provided <resource group>
 // Requires: AZURE_SERVICEBUS_CONNECTION_STRING
