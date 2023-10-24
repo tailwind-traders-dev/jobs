@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jobs-hello
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: jobs-hello
+  template:
+    metadata:
+      labels:
+        app: jobs-hello
+    spec:
+      containers:
+      - name: jobs-hello
+        image: ghcr.io/tailwind-traders-dev/jobs:latest
+        command: ['mage', 'servicebus:receive']
+        resources:
+          requests:
+            cpu: 100m
+            memory: "1Gi"
+        env:
+        - name: AZURE_SERVICEBUS_CONNECTION_STRING
+          valueFrom:
+            secretKeyRef:
+              name: connection-string-secret
+              key: connection-string
+        - name: AZURE_SERVICEBUS_QUEUE_NAME
+          value: tailwind-aks
+---
+apiVersion: keda.sh/v1alpha1
+kind: ScaledObject
+metadata:
+  name: jobs-hello-scaledobject
+spec:
+  scaleTargetRef:
+    name: jobs-hello
+  minReplicaCount: 0  # Optional. Default: 0
+  maxReplicaCount: 5 # Optional. Default: 100
+  triggers:
+  - type: azure-servicebus
+    metadata:
+      queueName: tailwind-aks
+      messageCount: '5'
+      connectionFromEnv: AZURE_SERVICEBUS_CONNECTION_STRING
