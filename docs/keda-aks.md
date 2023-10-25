@@ -10,9 +10,9 @@ Using the Azure CLI:
 sudo az aks install-cli
 ```
 
-Alternatively you can install kubectl manually per the Kubernetes ducomentation: <https://kubernetes.io/docs/tasks/tools/install-kubectl-macos/>
+Alternatively you can install kubectl manually per the Kubernetes documentation. 
 
-Example for macOS on Apple Silicon:
+For example, on macOS and Apple Silicon (<https://kubernetes.io/docs/tasks/tools/install-kubectl-macos/>):
 
 ```bash
 curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/darwin/arm64/kubectl"
